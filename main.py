@@ -28,22 +28,65 @@ class Player(FirstPersonController):
 
     def __init__(self):
         super().__init__()
-        self.height = 2
+        self.height = 1
         self.inventory_index = 0
         self.world_blocks = []
-        self.tooltip = Text(text=self.get_current_block_name(), origin=(0, 0), y=0.5, parent=self)
+        
+        # GUI elements
+        self.tooltip = Text(text=self.get_current_block_name(), origin=(0, 0), y=-0.4, parent=scene, eternal=True, ignore_paused=True)
+        self.tooltip.visible = True  # Ensure tooltip is initially visible
+        self.inventory_display = Text(text="Inventory", origin=(0, 0), y=0.4, parent=scene, eternal=True, ignore_paused=True)
+        self.inventory_display.visible = True  # Ensure inventory display is initially visible
+        self.health_display = Text(text="Health: 100", origin=(0, 0), y=0.3, parent=scene, eternal=True, ignore_paused=True)
+        self.health_display.visible = True  # Ensure health display is initially visible
+        self.hunger_display = Text(text="Hunger: 100", origin=(0, 0), y=0.2, parent=scene, eternal=True, ignore_paused=True)
+        self.hunger_display.visible = True  # Ensure hunger display is initially visible
+        
+        # Initial setup
+        self.tooltip.enabled = True
+        self.inventory_display.enabled = True
+        self.health_display.enabled = True
+        self.hunger_display.enabled = True
+        
+        # Survival mode attributes
+        self.health = 100
+        self.hunger = 100
+
+        # Debug chat variables
+        self.chat_open = False
+        self.chat_command_mode = False
+        self.god_mode = False
 
     def update(self):
         super().update()
-        self.tooltip.world_position = self.world_position + (0, 1, 0)
+        self.tooltip.world_position = self.world_position + (0, 2, 0)  # Adjust tooltip position as needed
+        
+        # Update GUI elements
+        self.update_gui()
+
+        # Survival mode update logic
+        self.update_survival_status()
+
+    def update_gui(self):
+        self.health_display.text = f"Health: {int(self.health)}"
+        self.hunger_display.text = f"Hunger: {int(self.hunger)}"
+        self.inventory_display.text = f"Inventory: {self.get_current_block_name()}"
+
+    def update_survival_status(self):
+        # Example: Decrease hunger over time
+        self.hunger -= 0.01
+        if self.hunger < 0:
+            self.hunger = 0
 
     def input(self, key):
+        # Handle movement and basic actions
+        super().input(key)
         if key == 'q':
             self.inventory_index = (self.inventory_index - 1) % self.inventory_slots
-            self.tooltip.text = self.get_current_block_name()
+            self.update_gui()
         elif key == 'e':
             self.inventory_index = (self.inventory_index + 1) % self.inventory_slots
-            self.tooltip.text = self.get_current_block_name()
+            self.update_gui()
         elif key == 'n':
             self.save_world()
         elif key == 'm':
@@ -51,6 +94,57 @@ class Player(FirstPersonController):
 
         if key == 'space':
             self.jump()
+        # Debug commands
+        if key == 't':
+            self.toggle_tooltip()
+        elif key == '/' and self.chat_open:
+            self.chat_command_mode = True
+            self.tooltip.text = '/'
+        elif self.chat_command_mode:
+            if key == 'enter':
+                self.process_chat_command()
+            elif key == 'escape':
+                self.close_chat()
+            else:
+                self.tooltip.text += key
+
+        # Survival mode inputs
+        if not self.chat_open and not self.chat_command_mode:
+            if key == 'space':
+                self.jump()
+
+    def toggle_tooltip(self):
+        self.tooltip.visible = not self.tooltip.visible
+        self.inventory_display.visible = not self.inventory_display.visible
+        self.health_display.visible = not self.health_display.visible
+        self.hunger_display.visible = not self.hunger_display.visible
+
+    def open_chat(self):
+        self.chat_open = True
+        self.chat_command_mode = False
+        self.tooltip.text = 'Chat: '
+    
+    def close_chat(self):
+        self.chat_open = False
+        self.tooltip.text = self.get_current_block_name()
+
+    def process_chat_command(self):
+        command = self.tooltip.text.strip()
+        if command == '/godmode':
+            self.toggle_god_mode()
+        self.close_chat()
+
+    def toggle_god_mode(self):
+        if not self.god_mode:
+            self.gravity = 0
+            self.y = self.height
+        else:
+            self.gravity = 1
+        self.god_mode = not self.god_mode
+
+    def jump(self):
+        if not self.god_mode:
+            super().jump()
 
     def get_current_block_name(self):
         return self.inventory_names[self.inventory_index]
@@ -147,6 +241,7 @@ class Environment:
     def remove_box(self, target_box):
         if target_box.active:
             self.player.remove_block(target_box)
+            self.boxes.remove(target_box)
 
 def serialize_vec3(vec):
     if isinstance(vec, Vec3):
