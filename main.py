@@ -1,7 +1,7 @@
 import json
 from ursina import Ursina, Vec3, Button, color, scene, mouse, destroy, application, load_texture, Text
 from ursina.prefabs.first_person_controller import FirstPersonController
-
+from noise import Noise
 class Block(Button):
     def __init__(self, position=Vec3(0, 0, 0), texture_path="textures/grass.png"):
         super().__init__(
@@ -214,7 +214,13 @@ class Environment:
     def create_boxes(self):
         for i in range(20):
             for j in range(20):
-                box = Block(position=Vec3(j, 0, i), texture_path='textures/grass.png')
+                # Calculate terrain height using Perlin noise
+                noise_val = Noise.perlin_noise(i, j)
+                height = int(noise_val * 5)  # Adjust multiplier for terrain height
+
+                # Create block at calculated height
+                position = Vec3(j, height, i)
+                box = Block(position=position, texture_path='textures/grass.png')
                 self.boxes.append(box)
 
     def input(self, key):
