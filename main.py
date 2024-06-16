@@ -13,7 +13,7 @@ class Block(Button):
             origin_y=0.5
         )
         self.texture_path = texture_path
-        self.active = True  # Track whether the block is active (visible)
+        self.active = True
 
     def serialize(self):
         return {
@@ -30,7 +30,7 @@ class Player(FirstPersonController):
         super().__init__()
         self.height = 2
         self.inventory_index = 0
-        self.world_blocks = []  # Track blocks placed by the player
+        self.world_blocks = []
         self.tooltip = Text(text=self.get_current_block_name(), origin=(0, 0), y=0.5, parent=self)
 
     def update(self):
@@ -38,10 +38,10 @@ class Player(FirstPersonController):
         self.tooltip.world_position = self.world_position + (0, 1, 0)
 
     def input(self, key):
-        if key == 'e':
+        if key == 'q':
             self.inventory_index = (self.inventory_index - 1) % self.inventory_slots
             self.tooltip.text = self.get_current_block_name()
-        elif key == 'r':
+        elif key == 'e':
             self.inventory_index = (self.inventory_index + 1) % self.inventory_slots
             self.tooltip.text = self.get_current_block_name()
         elif key == 'n':
@@ -55,8 +55,8 @@ class Player(FirstPersonController):
     def remove_block(self, block):
         if block in self.world_blocks:
             self.world_blocks.remove(block)
-            block.active = False  # Mark the block as inactive rather than destroying it
-            # No need to destroy the block immediately; it can be reused later
+            destroy(block)
+            block.active = False
 
     def save_world(self):
         player_data = {
@@ -66,12 +66,10 @@ class Player(FirstPersonController):
             'world_blocks': []
         }
 
-        # Serialize player's world blocks
         for block in self.world_blocks:
-            if block.active:  # Only save active blocks
+            if block.active:
                 player_data['world_blocks'].append(block.serialize())
 
-        # Save player's data to JSON
         with open('save.json', 'w') as f:
             json.dump(player_data, f, default=serialize_vec3, indent=4)
         print("World saved.")
@@ -81,30 +79,25 @@ class Player(FirstPersonController):
             with open('save.json', 'r') as f:
                 player_data = json.load(f)
 
-                # Restore player state
                 self.position = Vec3(*player_data['position'])
                 self.rotation_x = player_data['rotation'][0]
                 self.rotation_y = player_data['rotation'][1]
                 self.rotation_z = player_data['rotation'][2]
                 self.inventory_index = player_data['inventory_index']
 
-                # Clear existing world blocks
                 for block in self.world_blocks:
-                    block.active = False  # Mark all existing blocks as inactive
+                    block.active = False
                 self.world_blocks.clear()
 
-                # Load saved world blocks
                 for block_data in player_data['world_blocks']:
                     position = Vec3(*block_data['position'])
                     texture_path = block_data['texture_path']
 
-                    # Check if the block already exists
                     existing_block = next((block for block in environment.boxes if block.position == position), None)
                     if existing_block:
-                        existing_block.active = True  # Reactivate existing block
+                        existing_block.active = True
                         self.world_blocks.append(existing_block)
                     else:
-                        # Create new block if it doesn't exist
                         block = Block(position=position, texture_path=texture_path)
                         self.world_blocks.append(block)
                         environment.boxes.append(block)
@@ -140,18 +133,17 @@ class Environment:
     def place_new_box(self, target_box):
         if target_box.active:
             selected_texture = self.player.inventory[self.player.inventory_index]
-            new_position = target_box.position + mouse.normal  # Adjust this calculation if needed
+            new_position = target_box.position + mouse.normal
             try:
                 new_box = Block(position=new_position, texture_path=selected_texture)
                 self.boxes.append(new_box)
-                self.player.world_blocks.append(new_box)  # Add the block to player's world_blocks
+                self.player.world_blocks.append(new_box)
             except Exception as e:
                 print(f"Failed to create new box: {e}")
 
     def remove_box(self, target_box):
         if target_box.active:
             self.player.remove_block(target_box)
-            self.boxes.remove(target_box)
 
 def serialize_vec3(vec):
     if isinstance(vec, Vec3):
