@@ -49,6 +49,9 @@ class Player(FirstPersonController):
         elif key == 'm':
             self.load_world()
 
+        if key == 'space':
+            self.jump()
+
     def get_current_block_name(self):
         return self.inventory_names[self.inventory_index]
         

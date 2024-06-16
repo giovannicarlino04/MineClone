@@ -1,15 +1,15 @@
 {
     "position": [
-        10.468960762023926,
+        8.20477294921875,
         0.0,
-        3.670715808868408
+        5.866105556488037
     ],
     "rotation": [
         -0.0,
-        -23.148643493652344,
+        1787.1363525390625,
         0.0
     ],
-    "inventory_index": 4,
+    "inventory_index": 3,
     "world_blocks": [
         {
             "position": [
@@ -53,14 +53,6 @@
         },
         {
             "position": [
-                8.0,
-                1.0,
-                13.0
-            ],
-            "texture_path": "textures/wood.png"
-        },
-        {
-            "position": [
                 7.0,
                 1.0,
                 13.0
@@ -143,14 +135,6 @@
             "position": [
                 6.0,
                 2.0,
-                12.0
-            ],
-            "texture_path": "textures/wood.png"
-        },
-        {
-            "position": [
-                6.0,
-                2.0,
                 10.0
             ],
             "texture_path": "textures/wood.png"
@@ -197,75 +181,299 @@
         },
         {
             "position": [
-                7.0,
+                6.0,
                 2.0,
                 13.0
+            ],
+            "texture_path": "textures/log.png"
+        },
+        {
+            "position": [
+                10.0,
+                2.0,
+                13.0
+            ],
+            "texture_path": "textures/log.png"
+        },
+        {
+            "position": [
+                10.0,
+                2.0,
+                9.0
+            ],
+            "texture_path": "textures/log.png"
+        },
+        {
+            "position": [
+                6.0,
+                2.0,
+                9.0
+            ],
+            "texture_path": "textures/log.png"
+        },
+        {
+            "position": [
+                6.0,
+                2.0,
+                11.0
+            ],
+            "texture_path": "textures/glass.png"
+        },
+        {
+            "position": [
+                8.0,
+                2.0,
+                9.0
+            ],
+            "texture_path": "textures/glass.png"
+        },
+        {
+            "position": [
+                10.0,
+                2.0,
+                11.0
+            ],
+            "texture_path": "textures/glass.png"
+        },
+        {
+            "position": [
+                6.0,
+                3.0,
+                13.0
+            ],
+            "texture_path": "textures/log.png"
+        },
+        {
+            "position": [
+                6.0,
+                2.0,
+                12.0
             ],
             "texture_path": "textures/wood.png"
         },
         {
             "position": [
                 6.0,
-                2.0,
-                13.0
+                3.0,
+                10.0
             ],
-            "texture_path": "textures/log.png"
-        },
-        {
-            "position": [
-                10.0,
-                2.0,
-                13.0
-            ],
-            "texture_path": "textures/log.png"
-        },
-        {
-            "position": [
-                10.0,
-                2.0,
-                9.0
-            ],
-            "texture_path": "textures/log.png"
+            "texture_path": "textures/wood.png"
         },
         {
             "position": [
                 6.0,
-                2.0,
+                3.0,
+                11.0
+            ],
+            "texture_path": "textures/wood.png"
+        },
+        {
+            "position": [
+                6.0,
+                3.0,
+                12.0
+            ],
+            "texture_path": "textures/wood.png"
+        },
+        {
+            "position": [
+                6.0,
+                3.0,
                 9.0
             ],
             "texture_path": "textures/log.png"
         },
         {
             "position": [
-                8.0,
-                2.0,
-                13.0
-            ],
-            "texture_path": "textures/glass.png"
-        },
-        {
-            "position": [
-                6.0,
-                2.0,
-                11.0
-            ],
-            "texture_path": "textures/glass.png"
-        },
-        {
-            "position": [
-                8.0,
-                2.0,
+                7.0,
+                3.0,
                 9.0
             ],
-            "texture_path": "textures/glass.png"
+            "texture_path": "textures/wood.png"
+        },
+        {
+            "position": [
+                9.0,
+                3.0,
+                9.0
+            ],
+            "texture_path": "textures/wood.png"
+        },
+        {
+            "position": [
+                8.0,
+                3.0,
+                9.0
+            ],
+            "texture_path": "textures/wood.png"
         },
         {
             "position": [
                 10.0,
-                2.0,
+                3.0,
+                9.0
+            ],
+            "texture_path": "textures/log.png"
+        },
+        {
+            "position": [
+                10.0,
+                3.0,
+                10.0
+            ],
+            "texture_path": "textures/wood.png"
+        },
+        {
+            "position": [
+                10.0,
+                3.0,
                 11.0
             ],
-            "texture_path": "textures/glass.png"
+            "texture_path": "textures/wood.png"
+        },
+        {
+            "position": [
+                10.0,
+                3.0,
+                12.0
+            ],
+            "texture_path": "textures/wood.png"
+        },
+        {
+            "position": [
+                7.0,
+                3.0,
+                13.0
+            ],
+            "texture_path": "textures/wood.png"
+        },
+        {
+            "position": [
+                8.0,
+                3.0,
+                13.0
+            ],
+            "texture_path": "textures/wood.png"
+        },
+        {
+            "position": [
+                9.0,
+                3.0,
+                13.0
+            ],
+            "texture_path": "textures/wood.png"
+        },
+        {
+            "position": [
+                7.0,
+                3.0,
+                10.0
+            ],
+            "texture_path": "textures/wood.png"
+        },
+        {
+            "position": [
+                8.0,
+                3.0,
+                10.0
+            ],
+            "texture_path": "textures/wood.png"
+        },
+        {
+            "position": [
+                9.0,
+                3.0,
+                10.0
+            ],
+            "texture_path": "textures/wood.png"
+        },
+        {
+            "position": [
+                9.0,
+                3.0,
+                11.0
+            ],
+            "texture_path": "textures/wood.png"
+        },
+        {
+            "position": [
+                7.0,
+                3.0,
+                11.0
+            ],
+            "texture_path": "textures/wood.png"
+        },
+        {
+            "position": [
+                8.0,
+                3.0,
+                11.0
+            ],
+            "texture_path": "textures/wood.png"
+        },
+        {
+            "position": [
+                7.0,
+                3.0,
+                12.0
+            ],
+            "texture_path": "textures/wood.png"
+        },
+        {
+            "position": [
+                8.0,
+                3.0,
+                12.0
+            ],
+            "texture_path": "textures/wood.png"
+        },
+        {
+            "position": [
+                9.0,
+                3.0,
+                12.0
+            ],
+            "texture_path": "textures/wood.png"
+        },
+        {
+            "position": [
+                9.0,
+                3.0,
+                12.0
+            ],
+            "texture_path": "textures/wood.png"
+        },
+        {
+            "position": [
+                8.0,
+                3.0,
+                12.0
+            ],
+            "texture_path": "textures/wood.png"
+        },
+        {
+            "position": [
+                10.0,
+                3.0,
+                12.0
+            ],
+            "texture_path": "textures/wood.png"
+        },
+        {
+            "position": [
+                10.0,
+                3.0,
+                13.0
+            ],
+            "texture_path": "textures/log.png"
+        },
+        {
+            "position": [
+                7.0,
+                2.0,
+                13.0
+            ],
+            "texture_path": "textures/wood.png"
         }
     ]
 }
