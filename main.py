@@ -1,7 +1,8 @@
-import json
-from ursina import Ursina, Vec3, Button, color, scene, mouse, destroy, application, load_texture, Text
+import json, random
+from ursina import Ursina, Vec3, Button, color, scene, mouse, destroy, application, load_texture, Text, Entity, camera, TextField, window
 from ursina.prefabs.first_person_controller import FirstPersonController
 from noise import Noise
+
 class Block(Button):
     def __init__(self, position=Vec3(0, 0, 0), texture_path="textures/grass.png"):
         super().__init__(
@@ -31,41 +32,73 @@ class Player(FirstPersonController):
         self.height = 1
         self.inventory_index = 0
         self.world_blocks = []
-        
-        # GUI elements
-        self.tooltip = Text(text=self.get_current_block_name(), origin=(0, 0), y=-0.4, parent=scene, eternal=True, ignore_paused=True)
-        self.tooltip.visible = True  # Ensure tooltip is initially visible
-        self.inventory_display = Text(text="Inventory", origin=(0, 0), y=0.4, parent=scene, eternal=True, ignore_paused=True)
-        self.inventory_display.visible = True  # Ensure inventory display is initially visible
-        self.health_display = Text(text="Health: 100", origin=(0, 0), y=0.3, parent=scene, eternal=True, ignore_paused=True)
-        self.health_display.visible = True  # Ensure health display is initially visible
-        self.hunger_display = Text(text="Hunger: 100", origin=(0, 0), y=0.2, parent=scene, eternal=True, ignore_paused=True)
-        self.hunger_display.visible = True  # Ensure hunger display is initially visible
-        
-        # Initial setup
-        self.tooltip.enabled = True
-        self.inventory_display.enabled = True
-        self.health_display.enabled = True
-        self.hunger_display.enabled = True
-        
-        # Survival mode attributes
-        self.health = 100
-        self.hunger = 100
 
-        # Debug chat variables
+        # GUI elements
+        self.inventory_display = Text(text="Inventory: Grass", origin=(0, 0), x=-0.5, y=0.45, color=color.black, scale=1.5)
+        self.health_display = Text(text="Health: 100", origin=(0, 0), x=-0.5, y=0.4, color=color.black, scale=1.5)
+        self.hunger_display = Text(text="Hunger: 100", origin=(0, 0), x=-0.5, y=0.35, color=color.black, scale=1.5)
+        self.chat_display = TextField(x=-0.5, y=-0.45, scale=1.5, limit=30, visible=False)
+        
         self.chat_open = False
         self.chat_command_mode = False
         self.god_mode = False
+        
+        self.health = 100
+        self.hunger = 100
 
+
+class Player(FirstPersonController):
+    inventory = ["textures/grass.png", "textures/stone.png", "textures/log.png", "textures/wood.png", "textures/glass.png"]
+    inventory_names = ["Grass", "Stone", "Log", "Wood", "Glass"]
+    inventory_slots = len(inventory)
+
+    def __init__(self):
+        super().__init__()
+        self.height = 1
+        self.inventory_index = 0
+        self.world_blocks = []
+
+        # GUI elements
+        self.inventory_display = Text(text="Inventory: Grass", origin=(0, 0), x=-0.5, y=0.45, color=color.black, scale=1.5)
+        self.health_display = Text(text="Health: 100", origin=(0, 0), x=-0.5, y=0.4, color=color.black, scale=1.5)
+        self.hunger_display = Text(text="Hunger: 100", origin=(0, 0), x=-0.5, y=0.35, color=color.black, scale=1.5)
+        self.chat_display = TextField(x=-0.5, y=-0.45, scale=1.5, limit=30, visible=False)
+        
+        self.chat_open = False
+        self.chat_command_mode = False
+        self.god_mode = False
+        
+        self.health = 100
+        self.hunger = 100
+
+        # Terrain generation variables
+        self.chunk_size = 16  # Size of each terrain chunk
+        self.loaded_chunks = {}  # Dictionary to store loaded chunks
+
+    def update_visible_faces(self):
+            for block in self.world_blocks:
+                if block.active:
+                    self.load_visible_faces(block)
+                else:
+                    self.unload_faces(block)
+
+    def load_visible_faces(self, block):
+        # Example: Simple visibility logic (replace with actual logic)
+        block.visible_faces = { 'up': True, 'down': True, 'north': True, 'south': True, 'east': True, 'west': True }
+        # Implement logic to determine which faces are visible based on game rules
+
+    def unload_faces(self, block):
+        # Remove non-visible faces
+        for face in list(block.visible_faces.keys()):
+            if not block.visible_faces[face]:
+                block.faces[face].disable()  # Example: disable() method to disable face rendering
+            else:
+                block.faces[face].enable()  # Example: enable() method to enable face rendering
     def update(self):
         super().update()
-        self.tooltip.world_position = self.world_position + (0, 2, 0)  # Adjust tooltip position as needed
-        
-        # Update GUI elements
         self.update_gui()
-
-        # Survival mode update logic
         self.update_survival_status()
+        self.update_terrain()
 
     def update_gui(self):
         self.health_display.text = f"Health: {int(self.health)}"
@@ -73,74 +106,121 @@ class Player(FirstPersonController):
         self.inventory_display.text = f"Inventory: {self.get_current_block_name()}"
 
     def update_survival_status(self):
-        # Example: Decrease hunger over time
-        self.hunger -= 0.01
+        self.hunger -= 0.0001
         if self.hunger < 0:
             self.hunger = 0
 
+    def generate_chunk(self, chunk_key):
+        chunk_position = Vec3(chunk_key[0] * self.chunk_size, 0, chunk_key[1] * self.chunk_size)
+
+        for i in range(self.chunk_size):
+            for j in range(self.chunk_size):
+                noise_val = Noise.perlin_noise(chunk_key[0] * self.chunk_size + i, chunk_key[1] * self.chunk_size + j)
+                height = int(noise_val * 5)
+                position = chunk_position + Vec3(j, height, i)
+                texture_path = 'textures/grass.png'  # Example: Customize texture generation here
+                block = Block(position=position, texture_path=texture_path)
+                self.world_blocks.append(block)
+                block.parent = scene
+
+        self.loaded_chunks[chunk_key] = True
+
+    def update_terrain(self):
+        player_chunk_x = int(self.x / self.chunk_size)
+        player_chunk_z = int(self.z / self.chunk_size)
+
+        # Load chunks around the player if not already loaded
+        for dx in range(-1, 2):
+            for dz in range(-1, 2):
+                chunk_key = (player_chunk_x + dx, player_chunk_z + dz)
+                if chunk_key not in self.loaded_chunks:
+                    self.generate_chunk(chunk_key)
+
+        # Unload chunks that are far from the player
+        chunks_to_remove = []
+        for chunk_key in list(self.loaded_chunks.keys()):  # Use list() to iterate over a copy of keys
+            if abs(chunk_key[0] - player_chunk_x) > 1 or abs(chunk_key[1] - player_chunk_z) > 1:
+                chunks_to_remove.append(chunk_key)
+
+        for chunk_key in chunks_to_remove:
+            self.unload_chunk(chunk_key)
+   
+    def unload_chunk(self, chunk_key):
+        chunk_position = Vec3(chunk_key[0] * self.chunk_size, 0, chunk_key[1] * self.chunk_size)
+
+        # Remove blocks from the scene and deactivate them
+        for block in list(self.world_blocks):
+            if chunk_position.x <= block.x < chunk_position.x + self.chunk_size and \
+            chunk_position.z <= block.z < chunk_position.z + self.chunk_size:
+                destroy(block)
+                block.active = False
+                self.world_blocks.remove(block)
+
+        del self.loaded_chunks[chunk_key]
+        
     def input(self, key):
-        # Handle movement and basic actions
-        super().input(key)
-        if key == 'q':
+        if(self.chat_open == False):
+            super().input(key)
+
+        if key == 'scroll down':
             self.inventory_index = (self.inventory_index - 1) % self.inventory_slots
             self.update_gui()
-        elif key == 'e':
+        elif key == 'scroll up':
             self.inventory_index = (self.inventory_index + 1) % self.inventory_slots
             self.update_gui()
         elif key == 'n':
-            self.save_world()
+            if(self.chat_open == False):
+                self.save_world()
         elif key == 'm':
-            self.load_world()
+            if(self.chat_open == False):
+                self.load_world()
 
         if key == 'space':
-            self.jump()
-        # Debug commands
-        if key == 't':
-            self.toggle_tooltip()
-        elif key == '/' and self.chat_open:
-            self.chat_command_mode = True
-            self.tooltip.text = '/'
-        elif self.chat_command_mode:
+            if(self.god_mode == False):
+                self.jump()
+            if(self.god_mode):
+                self.y += 1
+        if key == 'left shift':
+            if(self.god_mode):
+                self.y -= 1
+
+        if self.chat_open:
             if key == 'enter':
                 self.process_chat_command()
             elif key == 'escape':
                 self.close_chat()
-            else:
-                self.tooltip.text += key
 
-        # Survival mode inputs
-        if not self.chat_open and not self.chat_command_mode:
-            if key == 'space':
-                self.jump()
+        elif key == 't':
+            self.toggle_chat()
 
-    def toggle_tooltip(self):
-        self.tooltip.visible = not self.tooltip.visible
-        self.inventory_display.visible = not self.inventory_display.visible
-        self.health_display.visible = not self.health_display.visible
-        self.hunger_display.visible = not self.hunger_display.visible
-
-    def open_chat(self):
-        self.chat_open = True
-        self.chat_command_mode = False
-        self.tooltip.text = 'Chat: '
-    
-    def close_chat(self):
-        self.chat_open = False
-        self.tooltip.text = self.get_current_block_name()
+    def toggle_chat(self):
+        self.chat_open = not self.chat_open
+        self.chat_display.visible = self.chat_open
+        if self.chat_open:
+            self.chat_display.text = ""
+            self.chat_display.active = True
+        else:
+            self.chat_display.text = ""
+            self.chat_display.active = False
 
     def process_chat_command(self):
-        command = self.tooltip.text.strip()
+        command = self.chat_display.text.strip().lower()
         if command == '/godmode':
             self.toggle_god_mode()
         self.close_chat()
 
+    def close_chat(self):
+        self.chat_open = False
+        self.chat_display.text = ""
+        self.chat_display.visible = False
+
     def toggle_god_mode(self):
-        if not self.god_mode:
+        self.god_mode = not self.god_mode
+        if self.god_mode:
             self.gravity = 0
             self.y = self.height
         else:
             self.gravity = 1
-        self.god_mode = not self.god_mode
 
     def jump(self):
         if not self.god_mode:
@@ -148,7 +228,7 @@ class Player(FirstPersonController):
 
     def get_current_block_name(self):
         return self.inventory_names[self.inventory_index]
-        
+
     def remove_block(self, block):
         if block in self.world_blocks:
             self.world_blocks.remove(block)
@@ -160,12 +240,10 @@ class Player(FirstPersonController):
             'position': [self.x, self.y, self.z],
             'rotation': [self.rotation_x, self.rotation_y, self.rotation_z],
             'inventory_index': self.inventory_index,
-            'world_blocks': []
+            'hunger': self.hunger,
+            'health': self.health,
+            'world_blocks': [block.serialize() for block in self.world_blocks if block.active]
         }
-
-        for block in self.world_blocks:
-            if block.active:
-                player_data['world_blocks'].append(block.serialize())
 
         with open('save.json', 'w') as f:
             json.dump(player_data, f, default=serialize_vec3, indent=4)
@@ -181,6 +259,8 @@ class Player(FirstPersonController):
                 self.rotation_y = player_data['rotation'][1]
                 self.rotation_z = player_data['rotation'][2]
                 self.inventory_index = player_data['inventory_index']
+                self.hunger = player_data['hunger']
+                self.health = player_data['health']
 
                 for block in self.world_blocks:
                     block.active = False
@@ -199,7 +279,7 @@ class Player(FirstPersonController):
                         self.world_blocks.append(block)
                         environment.boxes.append(block)
 
-                self.tooltip.text = self.get_current_block_name()
+                self.update_gui()
                 print("World loaded.")
 
         except FileNotFoundError:
@@ -214,40 +294,84 @@ class Environment:
     def create_boxes(self):
         for i in range(20):
             for j in range(20):
-                # Calculate terrain height using Perlin noise
                 noise_val = Noise.perlin_noise(i, j)
-                height = int(noise_val * 5)  # Adjust multiplier for terrain height
-
-                # Create block at calculated height
+                height = int(noise_val * 5)
                 position = Vec3(j, height, i)
                 box = Block(position=position, texture_path='textures/grass.png')
                 self.boxes.append(box)
 
     def input(self, key):
         if key == 'escape':
-            application.close_window()
-        for box in self.boxes:
-            if box.hovered:
-                if key == 'right mouse down':
-                    self.place_new_box(box)
-                if key == 'left mouse down':
-                    self.remove_box(box)
+            application.quit()
+        elif key == 'right mouse down':
+            self.place_new_box()
+        elif key == 'left mouse down':
+            self.remove_box()
 
-    def place_new_box(self, target_box):
-        if target_box.active:
+    def place_new_box(self):
+        hit_info = mouse.hovered_entity
+        if hit_info and isinstance(hit_info, Block) and hit_info.active:
             selected_texture = self.player.inventory[self.player.inventory_index]
-            new_position = target_box.position + mouse.normal
+            new_position = hit_info.position + mouse.normal  # Corrected line
             try:
-                new_box = Block(position=new_position, texture_path=selected_texture)
-                self.boxes.append(new_box)
-                self.player.world_blocks.append(new_box)
+                new_block = Block(position=new_position, texture_path=selected_texture)
+                self.boxes.append(new_block)
+                self.player.world_blocks.append(new_block)
             except Exception as e:
-                print(f"Failed to create new box: {e}")
+                print(f"Failed to create new block: {e}")
 
-    def remove_box(self, target_box):
-        if target_box.active:
-            self.player.remove_block(target_box)
-            self.boxes.remove(target_box)
+    def remove_box(self):
+        hit_info = mouse.hovered_entity
+        if isinstance(hit_info, Block) and hit_info.active:
+            self.player.remove_block(hit_info)  # Remove from player's world_blocks
+            if hit_info in self.boxes:
+                self.boxes.remove(hit_info)  # Remove from environment's boxes
+
+class MainMenu(Entity):
+    def __init__(self):
+        super().__init__(parent=camera.ui)
+        self.visible = True
+
+        self.start_button = Button(
+            text='Start Game',
+            color=color.azure,
+            scale=(0.2, 0.1),
+            position=(0, 0.1),
+            on_click=self.start_game
+        )
+
+        self.load_button = Button(
+            text='Load Game',
+            color=color.azure,
+            scale=(0.2, 0.1),
+            position=(0, 0),
+            on_click=self.load_game
+        )
+
+        self.quit_button = Button(
+            text='Quit',
+            color=color.azure,
+            scale=(0.2, 0.1),
+            position=(0, -0.1),
+            on_click=application.quit
+        )
+
+    def start_game(self):
+        for box in environment.boxes:
+            box.enabled = True
+        player.enabled = True
+        self.start_button.enabled = False
+        self.load_button.enabled = False
+        self.quit_button.enabled = False  
+
+    def load_game(self):
+        player.load_world()
+        self.start_game()
+        self.start_button.enabled = False
+        self.load_button.enabled = False
+        self.quit_button.enabled = False
+    
+
 
 def serialize_vec3(vec):
     if isinstance(vec, Vec3):
@@ -265,5 +389,12 @@ app = Ursina()
 
 player = Player()
 environment = Environment(player)
+for box in environment.boxes:
+    box.enabled = False
+player.enabled = False
+
+application.development_mode = False
+
+main_menu = MainMenu()
 
 app.run()
