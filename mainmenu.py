@@ -16,20 +16,11 @@ class MainMenu():
             position=(0, 0.1),
             on_click=self.start_game  # Assign start_game function itself
         )
-
-        self.load_button = Button(
-            text='Load Game',
-            color=color.azure,
-            scale=(0.2, 0.1),
-            position=(0, 0),
-            on_click=self.load_game  # Assign load_game function itself
-        )
-
         self.quit_button = Button(
             text='Quit',
             color=color.azure,
             scale=(0.2, 0.1),
-            position=(0, -0.1),
+            position=(0, 0.0),
             on_click=application.quit
         )
 
@@ -38,12 +29,4 @@ class MainMenu():
             box.enabled = True
         self.player.enabled = True
         self.start_button.enabled = False
-        self.load_button.enabled = False
-        self.quit_button.enabled = False
-
-    def load_game(self):
-        Utils.load_world(self.player)
-        self.start_game()
-        self.start_button.enabled = False
-        self.load_button.enabled = False
         self.quit_button.enabled = False
